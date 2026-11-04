@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use App\Models\Book;
 use App\Models\Genre;
 
@@ -13,7 +14,7 @@ class BookController extends Controller
         $genre = $request->query('genre');
         $year  = $request->query('year');
 
-        $query = Book::with('genre');
+        $query = Book::withh('genre');
 
         if ($genre) {
             $query = $query->where('genre_id', $genre);
@@ -48,7 +49,12 @@ class BookController extends Controller
             'genre_id' => 'required|exists:genres,id',
         ]);
 
-        Book::create($validated + ['is_featured' => false]);
+        $book = Book::create($validated + ['is_featured' => false]);
+
+        Log::info('Book saved', [
+            'id'    => $book->id,
+            'title' => $book->title,
+        ]);
 
         $total = Book::count();
 
@@ -85,6 +91,9 @@ class BookController extends Controller
 
     public function destroy(Book $book)
     {
+        // Part E: refuse to delete the last book in a genre
+        abort_if($book->genre->books()->count() === 1, 403);
+
         $book->delete();
 
         return redirect()->route('books.index')
