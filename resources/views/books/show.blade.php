@@ -17,6 +17,16 @@
         </ul>
     </div>
 
-    <a href="{{ route('books.index') }}" class="btn btn-secondary">Back to List</a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('books.index') }}" class="btn btn-secondary">Back to List</a>
+        <a href="{{ route('books.edit', $book) }}" class="btn btn-outline-primary">Edit</a>
+
+        <form action="{{ route('books.destroy', $book) }}" method="POST"
+              onsubmit="return confirm('Delete this book?')">
+            @csrf
+            @method('DELETE')
+            <button type="submit" class="btn btn-danger">Delete</button>
+        </form>
+    </div>
 
 @endsection
