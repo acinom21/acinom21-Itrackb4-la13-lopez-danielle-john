@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\BookController;
+use App\Http\Controllers\HomeController;
 use App\Http\Controllers\TeacherController;
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BookController;
+
+// Part B: front page, not a resource controller
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // These must come BEFORE the resource route, or /books/{book} intercepts them
 Route::get('/books/feature', [BookController::class, 'feature'])
@@ -12,7 +16,6 @@ Route::get('/books/feature', [BookController::class, 'feature'])
 Route::get('/books/filter/{genre?}', [BookController::class, 'redirectOldFilter'])
     ->name('books.filter');
 
-// Part A: no only(). This gives all seven routes, including create and store.
 Route::resource('books', BookController::class);
 
 Route::get('/teachers/featured', [TeacherController::class, 'featured'])

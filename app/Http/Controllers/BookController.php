@@ -11,25 +11,37 @@ class BookController extends Controller
 {
     public function index(Request $request)
     {
-        $genre = $request->query('genre');
-        $year  = $request->query('year');
+        $search   = $request->query('search');
+        $genre    = $request->query('genre');
+        $featured = $request->query('featured');
 
-        $query = Book::withh('genre');
+        // Part I: only these columns may be sorted on
+        $sort = $request->query('sort', 'title');
+
+        if (! in_array($sort, ['title', 'year'])) {
+            $sort = 'title';
+        }
+
+        $query = Book::with('genre');
+
+        if ($search) {
+            $query = $query->where('title', 'like', "%{$search}%");
+        }
 
         if ($genre) {
             $query = $query->where('genre_id', $genre);
         }
 
-        if ($year) {
-            $query = $query->where('year', $year);
+        if ($featured !== null && $featured !== '') {
+            $query = $query->where('is_featured', $featured);
         }
 
-        $books = $query->get();
+        $books = $query->orderBy($sort)->paginate(8)->withQueryString();
 
         return view('books.index', [
-            'books' => $books,
-            'genre' => $genre,
-            'year'  => $year,
+            'books'  => $books,
+            'genres' => Genre::all(),
+            'sort'   => $sort,
         ]);
     }
 
@@ -91,7 +103,6 @@ class BookController extends Controller
 
     public function destroy(Book $book)
     {
-        // Part E: refuse to delete the last book in a genre
         abort_if($book->genre->books()->count() === 1, 403);
 
         $book->delete();
